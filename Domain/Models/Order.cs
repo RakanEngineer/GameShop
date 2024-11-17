@@ -10,17 +10,17 @@ namespace GameShop.Domain.Models
     {
         public int Id { get; protected set; }
         //public string Article { get; protected set; }
-        public DateTime CreatedAt { get; protected set; } = DateTime.Now;
+        public DateTime CreatedAt { get; protected set; }
 
         public int CustomerId { get; protected set; }
+        public Customer Customer { get; protected set; }
         public List<OrderArticle> OrderArticles { get; protected set; }= new List<OrderArticle>();
 
-        //public Order(string article)
-        //{
-        //    Article = article;
-        //    //CreatedAt = DateTime.Now;
+        public Order()
+        {
+            CreatedAt = DateTime.Now;
 
-        //}
-        
+        }
+
     }
 }

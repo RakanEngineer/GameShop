@@ -87,6 +87,8 @@ namespace GameShop
                 } while (!isValidKey);
                 if (keyPressed.Key == ConsoleKey.J)
                 {
+                    isCorrect = true;
+                    Clear();
                     //context.Customer.Any(x => x.SocialSecurityNumber == socialSecurityNumber)
                     if (context.Article.Any(x => x.ArticleNumber == articleNumber))
                     {
@@ -94,7 +96,7 @@ namespace GameShop
                     }
                     else
                     {
-                        Article article = new Article(articleNumber,name, description, price);
+                        Article article = new Article(articleNumber, name, description, price);
 
                         context.Article.Add(article);
                         context.SaveChanges();
@@ -104,7 +106,6 @@ namespace GameShop
                     Thread.Sleep(2000);
                     Clear();
 
-                    isCorrect = true;
                 }
             } while (!isCorrect);
         }
@@ -116,7 +117,11 @@ namespace GameShop
             Customer customer = context.Customer
                 .Include(x => x.Address)
                 .Include(x => x.Orders)
+                .ThenInclude(x => x.OrderArticles)
+                .ThenInclude(x => x.Article)
                 .FirstOrDefault(customer => customer.SocialSecurityNumber == socialSecurityNumber);
+
+             
             Clear();
             if (customer != null)
             {
@@ -126,16 +131,21 @@ namespace GameShop
                 WriteLine();
                 Write($"{customer.Address.Street}, {customer.Address.Postcode} {customer.Address.City}");
                 WriteLine();
-                Write("Order Id".PadRight(10, ' '));
-                Write("Produkt".PadRight(20, ' '));
-                WriteLine("Datum");
-                WriteLine("---------------------------------------------------------");
-                foreach (Order order in customer.Orders)
+                foreach(Order order in customer.Orders)
                 {
-                    Write(order.Id.ToString().PadRight(10, ' '));
-                    //Write(order.Article.PadRight(20, ' '));
-                    WriteLine(order.CreatedAt);
+                    WriteLine("---------------------------------------------------------");
+
+                    Write($"Order Id: {order.Id}");
+                    WriteLine($"Datum: {order.CreatedAt}");
+                    WriteLine("Artiklar");
+
+                    foreach (OrderArticle orderArticle in order.OrderArticles)
+                    {
+                        WriteLine(orderArticle.Article.Name);
+                    }
                 }
+               
+                
                 ConsoleKeyInfo keyPressed;
                 bool escapePressed = false;
                 do
@@ -158,18 +168,63 @@ namespace GameShop
         {
             Write("Kund (personr.): ");
             string socialSecurityNumber = ReadLine();
-            Write("Article: ");
-            string article = ReadLine();
+            
             Customer customer = context.Customer
                 .FirstOrDefault(customer => customer.SocialSecurityNumber == socialSecurityNumber);
 
             Clear();
+            Order order = new Order();
+            bool orderCreated = false;
+
             if (customer != null)
             {
-                Order order = new Order();
-                customer.Orders.Add(order);
-                context.SaveChanges();
-                WriteLine("Order skapad");
+                do
+                {
+                    Clear();
+                    WriteLine($"{customer.FirstName} {customer.LastName}");
+                    WriteLine();
+
+                    WriteLine("Artikel");
+                    WriteLine("----------------------------------------------");
+                    foreach (OrderArticle orderArticle in order.OrderArticles)
+                    {
+                        WriteLine(orderArticle.Article.Name);
+                    }
+
+                    Write("(L)ägg till");
+                    Write("(S)kapa order");
+                    ConsoleKeyInfo keyPressed= ReadKey(true);
+
+                    Clear();
+
+                    switch (keyPressed.Key)
+                    {
+                        //Add article
+                        case ConsoleKey.L:
+                            WriteLine("Obs! lägg inte till mer än en artikel av en viss typ");
+                            WriteLine();
+                            Write("Art.nr: ");
+                                string articleNumber = ReadLine();
+                            Article article = context.Article.FirstOrDefault(x => x.ArticleNumber == articleNumber);
+                            OrderArticle orderArticle = new OrderArticle(article);
+                            order.OrderArticles.Add(orderArticle);
+                            context.SaveChanges();
+
+                            break;
+
+                        //Add order
+                        case ConsoleKey.S:
+
+                            customer.Orders.Add(order);
+                            context.SaveChanges();
+                            orderCreated = true;
+                            break;
+
+                    }
+                }while (!orderCreated);
+                Clear();
+                WriteLine("Order created");
+
             }
             else
             {
@@ -247,8 +302,11 @@ namespace GameShop
                             Address address = new Address(street, city, postcode);
                             Customer customer = new Customer(firstName, lastName, socialSecurityNumber, address);
 
-                            SaveCustomer(customer);
-                            WriteLine("Kund registerad");
+                        //SaveCustomer(customer);
+                        context.Customer.Add(customer);
+                        context.SaveChanges();
+
+                        WriteLine("Kund registerad");
                         }
 
                         Thread.Sleep(2000);
@@ -260,15 +318,15 @@ namespace GameShop
             
         }
 
-        private static void SaveCustomer(Customer customer)
-        {
-            // Börja med att lägga till en customer till DbContext.
-            // Vid detta skedet har vi inte ännu kommunicerat med databasen.
-            context.Customer.Add(customer);
+        //private static void SaveCustomer(Customer customer)
+        //{
+        //    // Börja med att lägga till en customer till DbContext.
+        //    // Vid detta skedet har vi inte ännu kommunicerat med databasen.
+        //    context.Customer.Add(customer);
 
-            // Nu sparar vi customer till databasen.
-            context.SaveChanges();
-        }
+        //    // Nu sparar vi customer till databasen.
+        //    context.SaveChanges();
+        //}
     }
     
 }

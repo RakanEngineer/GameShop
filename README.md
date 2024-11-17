@@ -8,3 +8,4 @@
 -Update-Database
 ------------
 Remove-Migration
+drop-database

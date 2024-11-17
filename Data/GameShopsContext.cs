@@ -22,11 +22,18 @@ namespace GameShop.Data
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-           modelBuilder.Entity<OrderArticle>().HasKey(bc => new { bc.OrderId,bc.ArticleId});
+           modelBuilder.Entity<OrderArticle>()
+                .HasKey(bc => new { bc.OrderId,bc.ArticleId});
 
-           modelBuilder.Entity<OrderArticle>().HasOne(bc => bc.Article).WithMany(c => c.OrderArticles).HasForeignKey(bc => bc.ArticleId);
+           modelBuilder.Entity<OrderArticle>()
+                .HasOne(bc => bc.Article)
+                .WithMany(c => c.OrderArticles)
+                .HasForeignKey(bc => bc.ArticleId);
 
-            modelBuilder.Entity<OrderArticle>().HasOne(bc => bc.Order).WithMany(c => c.OrderArticles).HasForeignKey(bc => bc.OrderId);
+            modelBuilder.Entity<OrderArticle>()
+                .HasOne(bc => bc.Order)
+                .WithMany(c => c.OrderArticles)
+                .HasForeignKey(bc => bc.OrderId);
 
         }
     }
