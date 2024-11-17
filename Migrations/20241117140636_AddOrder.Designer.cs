@@ -4,6 +4,7 @@ using GameShop.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GameShop.Migrations
 {
     [DbContext(typeof(GameShopsContext))]
-    partial class GameShopsContextModelSnapshot : ModelSnapshot
+    [Migration("20241117140636_AddOrder")]
+    partial class AddOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,34 +56,6 @@ namespace GameShop.Migrations
                     b.ToTable("Address");
                 });
 
-            modelBuilder.Entity("GameShop.Domain.Models.Article", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ArticleNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Article");
-                });
-
             modelBuilder.Entity("GameShop.Domain.Models.Customer", b =>
                 {
                     b.Property<int>("Id")
@@ -114,6 +89,10 @@ namespace GameShop.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Article")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -125,21 +104,6 @@ namespace GameShop.Migrations
                     b.HasIndex("CustomerId");
 
                     b.ToTable("Order");
-                });
-
-            modelBuilder.Entity("GameShop.Domain.Models.OrderArticle", b =>
-                {
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ArticleId")
-                        .HasColumnType("int");
-
-                    b.HasKey("OrderId", "ArticleId");
-
-                    b.HasIndex("ArticleId");
-
-                    b.ToTable("OrderArticle");
                 });
 
             modelBuilder.Entity("GameShop.Domain.Models.Address", b =>
@@ -160,41 +124,12 @@ namespace GameShop.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("GameShop.Domain.Models.OrderArticle", b =>
-                {
-                    b.HasOne("GameShop.Domain.Models.Article", "Article")
-                        .WithMany("OrderArticles")
-                        .HasForeignKey("ArticleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("GameShop.Domain.Models.Order", "Order")
-                        .WithMany("OrderArticles")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Article");
-
-                    b.Navigation("Order");
-                });
-
-            modelBuilder.Entity("GameShop.Domain.Models.Article", b =>
-                {
-                    b.Navigation("OrderArticles");
-                });
-
             modelBuilder.Entity("GameShop.Domain.Models.Customer", b =>
                 {
                     b.Navigation("Address")
                         .IsRequired();
 
                     b.Navigation("Orders");
-                });
-
-            modelBuilder.Entity("GameShop.Domain.Models.Order", b =>
-                {
-                    b.Navigation("OrderArticles");
                 });
 #pragma warning restore 612, 618
         }

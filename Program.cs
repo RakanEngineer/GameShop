@@ -15,10 +15,12 @@ namespace GameShop
             while (!shouldExit)
             {
                 WriteLine("1. Registrera kund");
-                WriteLine("2. Visa kundregister");
+                WriteLine("2. Visa kundregistret");
                 WriteLine("3. Skapa order");
-                WriteLine("4. Lista konton för kund");
-                WriteLine("5. Avsluta");
+                WriteLine("4. Lista order för kund");
+                WriteLine("5. Registrera Artikel");
+                WriteLine("6. Exit");
+
                 ConsoleKeyInfo keyPressed = ReadKey(true);
                 Clear();
                 switch (keyPressed.Key)
@@ -35,22 +37,145 @@ namespace GameShop
 
                     case ConsoleKey.D3:
                     case ConsoleKey.NumPad3:
-                        //CreateOrder();
+                        CreateOrder();
                         break;
 
                     case ConsoleKey.D4:
                     case ConsoleKey.NumPad4:
-                        //DisplayAccountsForCustomer();
+                        DisplayOrdersForCustomer();
                         break;
 
                     case ConsoleKey.D5:
                     case ConsoleKey.NumPad5:
+                        RegisteraArticle();
+                        break;
+
+                    case ConsoleKey.D6:
+                    case ConsoleKey.NumPad6:
                         shouldExit = true;
                         break;
                 }
                 Clear();
             }
 
+        }
+
+        private static void RegisteraArticle()
+        {
+            bool isCorrect = false;
+            do
+            {
+                Clear();
+                Write("Artikelnr: ");
+                string articleNumber = ReadLine();
+                Write("Namn: ");
+                string name = ReadLine();
+                Write("Beskrivning: ");
+                string description = ReadLine();
+                Write("Pris: ");
+                decimal price = decimal.Parse(ReadLine());
+                
+                WriteLine();
+                WriteLine("Är detta korrekt? (J)a eller (N)ej");
+                ConsoleKeyInfo keyPressed;
+                bool isValidKey = false;
+                do
+                {
+                    keyPressed = ReadKey(true);
+                    isValidKey = keyPressed.Key == ConsoleKey.J ||
+                                 keyPressed.Key == ConsoleKey.N;
+                } while (!isValidKey);
+                if (keyPressed.Key == ConsoleKey.J)
+                {
+                    //context.Customer.Any(x => x.SocialSecurityNumber == socialSecurityNumber)
+                    if (context.Article.Any(x => x.ArticleNumber == articleNumber))
+                    {
+                        WriteLine("Artikel finns redan");
+                    }
+                    else
+                    {
+                        Article article = new Article(articleNumber,name, description, price);
+
+                        context.Article.Add(article);
+                        context.SaveChanges();
+                        WriteLine("Artikle registerad");
+                    }
+
+                    Thread.Sleep(2000);
+                    Clear();
+
+                    isCorrect = true;
+                }
+            } while (!isCorrect);
+        }
+
+        private static void DisplayOrdersForCustomer()
+        {
+            Write("Kund (personr.): ");
+            string socialSecurityNumber = ReadLine();
+            Customer customer = context.Customer
+                .Include(x => x.Address)
+                .Include(x => x.Orders)
+                .FirstOrDefault(customer => customer.SocialSecurityNumber == socialSecurityNumber);
+            Clear();
+            if (customer != null)
+            {
+                // visa kund och ordrar
+                WriteLine($"{customer.FirstName} {customer.LastName}");
+                WriteLine($"{customer.SocialSecurityNumber}");
+                WriteLine();
+                Write($"{customer.Address.Street}, {customer.Address.Postcode} {customer.Address.City}");
+                WriteLine();
+                Write("Order Id".PadRight(10, ' '));
+                Write("Produkt".PadRight(20, ' '));
+                WriteLine("Datum");
+                WriteLine("---------------------------------------------------------");
+                foreach (Order order in customer.Orders)
+                {
+                    Write(order.Id.ToString().PadRight(10, ' '));
+                    //Write(order.Article.PadRight(20, ' '));
+                    WriteLine(order.CreatedAt);
+                }
+                ConsoleKeyInfo keyPressed;
+                bool escapePressed = false;
+                do
+                {
+                    keyPressed = ReadKey(true);
+                    if (keyPressed.Key == ConsoleKey.Escape)
+                    {
+                        escapePressed = true;
+                    }
+                } while (!escapePressed);
+            }
+            else
+            {
+                WriteLine("Kund hittades ej");
+                Thread.Sleep(2000);
+            }
+        }
+
+        private static void CreateOrder()
+        {
+            Write("Kund (personr.): ");
+            string socialSecurityNumber = ReadLine();
+            Write("Article: ");
+            string article = ReadLine();
+            Customer customer = context.Customer
+                .FirstOrDefault(customer => customer.SocialSecurityNumber == socialSecurityNumber);
+
+            Clear();
+            if (customer != null)
+            {
+                Order order = new Order();
+                customer.Orders.Add(order);
+                context.SaveChanges();
+                WriteLine("Order skapad");
+            }
+            else
+            {
+                WriteLine("Kund hittades ej");
+            }
+            Thread.Sleep(2000);
         }
 
         private static void DisplayCustomerRegistry()
@@ -83,7 +208,7 @@ namespace GameShop
 
         private static void RegisterCustomer()
         {
-            {
+            
                 bool isCorrect = false;
                 do
                 {
@@ -126,14 +251,13 @@ namespace GameShop
                             WriteLine("Kund registerad");
                         }
 
-
-                        Clear();
-
                         Thread.Sleep(2000);
+                        Clear();
+                       
                         isCorrect = true;
                     }
                 } while (!isCorrect);
-            }
+            
         }
 
         private static void SaveCustomer(Customer customer)

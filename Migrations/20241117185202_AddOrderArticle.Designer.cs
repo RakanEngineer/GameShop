@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GameShop.Migrations
 {
     [DbContext(typeof(GameShopsContext))]
-    [Migration("20241112122232_initial")]
-    partial class initial
+    [Migration("20241117185202_AddOrderArticle")]
+    partial class AddOrderArticle
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -56,6 +56,26 @@ namespace GameShop.Migrations
                     b.ToTable("Address");
                 });
 
+            modelBuilder.Entity("GameShop.Domain.Models.Article", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Article");
+                });
+
             modelBuilder.Entity("GameShop.Domain.Models.Customer", b =>
                 {
                     b.Property<int>("Id")
@@ -95,13 +115,26 @@ namespace GameShop.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Product")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
+                    b.HasIndex("CustomerId");
+
                     b.ToTable("Order");
+                });
+
+            modelBuilder.Entity("GameShop.Domain.Models.OrderArticle", b =>
+                {
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("OrderId", "ArticleId");
+
+                    b.HasIndex("ArticleId");
+
+                    b.ToTable("OrderArticle");
                 });
 
             modelBuilder.Entity("GameShop.Domain.Models.Address", b =>
@@ -113,10 +146,50 @@ namespace GameShop.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("GameShop.Domain.Models.Order", b =>
+                {
+                    b.HasOne("GameShop.Domain.Models.Customer", null)
+                        .WithMany("Orders")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GameShop.Domain.Models.OrderArticle", b =>
+                {
+                    b.HasOne("GameShop.Domain.Models.Article", "Article")
+                        .WithMany("OrderArticles")
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GameShop.Domain.Models.Order", "Order")
+                        .WithMany("OrderArticles")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("GameShop.Domain.Models.Article", b =>
+                {
+                    b.Navigation("OrderArticles");
+                });
+
             modelBuilder.Entity("GameShop.Domain.Models.Customer", b =>
                 {
                     b.Navigation("Address")
                         .IsRequired();
+
+                    b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("GameShop.Domain.Models.Order", b =>
+                {
+                    b.Navigation("OrderArticles");
                 });
 #pragma warning restore 612, 618
         }
